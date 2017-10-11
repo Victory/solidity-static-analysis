@@ -4,6 +4,7 @@ const Compiler = require('./compiler.js');
 const request = require('request');
 const swarmgw = require('swarmgw');
 const StaticAnalysisRunner = require('./staticAnalysisRunner.js');
+const list = require('./modules/list');
 
 const filesProviders = {};
 
@@ -127,48 +128,47 @@ function staticAnalysis(cb) {
       throw new Error();
     }
 
-    console.log(this.compiler.lastCompilationResult.data.errors);
-    console.log();
+    var compilationErrors = this.compiler.lastCompilationResult.data.errors || [];
+
+    if (compilationErrors.length > 0) {
+      console.log("Compilation Errors/Warnings: ");
+    }
+    for (var ii = 0; ii < compilationErrors.length; ii++) {
+      var error = compilationErrors[ii];
+      var bits = error.split(": ");
+      console.log(bits.shift());
+      console.log(bits.join(": "));
+    }
 
     this.run(compilationResult, cb);
   });
 }
 
-staticAnalysis.prototype.run = function (compilationResult, cb) {
-  var selected = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-  var warnings = [];
+staticAnalysis.prototype.run = function (compilationResult) {
+  var selected = [];
+  for (var ii = 0; ii < list.length; ii++) {
+    selected.push(ii);
+  }
 
   this.runner.run(compilationResult, selected, function (results) {
     results.map(function (result) {
       result.report.map(function (item) {
-        var location = '';
+        var cleanWarning = item.warning;
+        // XXX: quick fix for the terminal
+        cleanWarning = cleanWarning
+            .replace("<i>","")
+            .replace("</i>","")
+            .replace("<br />", "")
+            .replace("<i>","`")
+            .replace("</i>","`")
+            .replace("<i>","`")
+            .replace("<i>","`")
+            .replace("</i>","`")
+            .replace("</i>","`");
 
-        if (item.location !== undefined) {
-          console.log('XXX', item.location);
-
-          var split = item.location.split(':');
-          var file = split[2];
-
-          location = {
-            start: parseInt(split[0], 10),
-            length: parseInt(split[1], 10)
-          };
-
-          location = self.appAPI.offsetToLineColumn(location, file);
-
-          location = compilationResult.sourceList[file] + ':' +
-            (location.start.line + 1) + ':' +
-            (location.start.column + 1) + ':';
-        }
-
-        warnings.push({
-          location: location,
-          item: item
-        });
+        console.log("warning:\n", cleanWarning);
       });
     });
-
-    cb(warnings);
   });
 };
 

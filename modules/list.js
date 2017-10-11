@@ -1,12 +1,12 @@
 module.exports = [
-  require('./txOrigin'),
-  require('./gasCosts'),
-  require('./thisLocal'),
+  require('./blockBlockhash'),
+  require('./blockTimestamp'),
   require('./checksEffectsInteraction'),
   require('./constantFunctions'),
-  require('./similarVariableNames.js'),
+  require('./gasCosts'),
   require('./inlineAssembly'),
-  require('./blockTimestamp'),
   require('./lowLevelCalls'),
-  require('./blockBlockhash')
+  require('./similarVariableNames'),
+  require('./thisLocal'),
+  require('./txOrigin'),
 ]
